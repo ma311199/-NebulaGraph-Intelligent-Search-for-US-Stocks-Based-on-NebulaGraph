@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="height: 100%">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <!--<script type="text/javascript" src="/static/js/echarts.min.js"></script>-->
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+</head>
+<body style="height: 100%; margin: 0">
+<div style="height: 40px"></div>
+<div class="layui-container">
+    <form class="layui-form" action="" style="padding-left: 250px;display: flex">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label">选择日期</label>
+                <div class="layui-input-block">
+                    <input type="text" class="layui-input" name="part_dt" id="t1">
+                </div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <input type="text" name="top" placeholder="请输入查看的股票数量" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <input type="radio" name="peIndex" value="desc" title="降序">
+                <input type="radio" name="peIndex" value="asc" title="升序">
+                <button class="layui-btn layui-btn-sm layui-btn-radius layui-border-orange" lay-submit lay-filter="formDemo">点击确认</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="container" style="height: 600px"></div>
+<script>
+    //Demo
+    var category=[];
+    var value=[];
+    layui.use(['form','layer','laydate'], function(){
+        var form = layui.form;
+        var layer=layui.layer;
+        var laydate=layui.laydate;
+
+        var date = new Date();
+        var day =date.getDate()-1 ; //日
+        var month=date.getMonth()+1 ; //月
+        var year=date.getFullYear(); //年
+        laydate.render({
+            elem: '#t1',//指定元素
+            format:"yyyyMMdd",
+            min: '2023-03-14',
+            max: year+"-"+month+"-"+day,
+            theme:'grid',
+            calendar: true
+        });
+
+        function topData(peIndex,part_dt,top) {
+            $.ajax({
+                    type: "GET",
+                    url: "/stock/peListIndex",
+                    contentType: "application/json",
+                    data: {"peIndex": peIndex,"part_dt":part_dt,"top":top},
+                    async: false,
+                    success: function (res) {
+                        console.log(res + "成功")
+                    },
+                    error: function (msg) {
+                        console.log(msg + "失败了")
+                    }
+                }
+            );
+        }
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            layer.msg("提交登录表单: "+JSON.stringify(data.field),{icon:6});
+            var peIndex=data.field.peIndex;
+            var part_dt=data.field.part_dt;
+            var top=data.field.top;
+            topData(peIndex,part_dt,top);
+            location.reload();
+            return false;
+        });
+    });
+</script>
+<script type="text/javascript">
+    var pe=[];
+    var cname=[];
+    var len;
+    $.ajax({
+        type: "get",
+        url: "/stock/peListValue",
+        async:false,
+        contentType: "application/json",
+        success: function(res){
+            len=res.length;
+            for (var i = 0; i < res.length ; i++) {
+                cname.push(res[i].cname);
+                pe.push(res[i].pe);
+            }
+        }
+    });
+
+    var dom = document.getElementById('container');
+    console.log("开始渲染图表")
+    var myChart = echarts.init(dom, null, {
+        renderer: 'canvas',
+        useDirtyRect: false
+    });
+    var app = {};
+
+    var option;
+
+    const data = genData(len);
+    option = {
+        title: {
+            text: '股票市盈率比较',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b} : {c} ({d}%)'
+        },
+        legend: {
+            type: 'scroll',
+            orient: 'vertical',
+            right: 10,
+            top: 20,
+            bottom: 20,
+            data: data.legendData
+        },
+        series: [
+            {
+                name: '股票名称',
+                type: 'pie',
+                radius: '55%',
+                center: ['40%', '50%'],
+                data: data.seriesData,
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        ]
+    };
+    function genData(count) {
+        const legendData = [];
+        const seriesData = [];
+        for (var i = 0; i < count; i++) {
+
+            legendData.push(cname[i]);
+
+            seriesData.push({
+                name: cname[i],
+                value: pe[i]
+            });
+        }
+        return {
+            legendData: legendData,
+            seriesData: seriesData
+        };
+    }
+
+    if (option && typeof option === 'object') {
+        myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+</script>
+</body>
+</html>

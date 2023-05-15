@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <title>美股数据指标可视化</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/static/img/lol.ico">
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+    <script type="text/javascript" src="/static/js/js.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.liMarquee.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.cxselect.min.js"></script>
+    <link rel="stylesheet" href="/static/css/comon0.css">
+</head>
+
+<body>
+    <div style="background:#000d4a url(/static/img/bg.png) center top;">
+        <div class="loading">
+            <div class="loadbox"> <img src="/static/img/loading.gif"> 页面加载中... </div>
+        </div>
+        <div class="back"></div>
+        <div class="mainbox">
+            <ul class="clearfix">
+                <li>
+                    <div class="boxall" style="height:470px;">
+                        <div class="alltitle">Last 7 days</div>
+                        <div class="navboxall" id="echart5"></div>
+                    </div>
+                    <div class="boxall" style="height:470px;">
+                        <div class="alltitle">Last 30 days</div>
+
+                        <div class="navboxall" id="echart1"></div>
+                    </div>
+
+                </li>
+                <li>
+                    <div class="boxall" style="height:470px">
+                        <div class="alltitle">行业成交额数据</div>
+                        <div class="navboxall" id="echart4"></div>
+                    </div>
+
+                    <div class="boxall" style="height:470px">
+                        <div class="alltitle">今日个股股价数据</div>
+                        <div class="navboxall" id="echart3"></div>
+                    </div>
+                </li>
+                <li>
+                    <div class="boxall" style="height:300px">
+                        <div class="alltitle">行业板块涨幅榜</div>
+                        <div class="navboxall">
+                            <table class="table1" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tbody>
+                                    <tr>
+                                        <th scope="col" class="toptop">排名</th>
+                                        <th scope="col">行业板块</th>
+                                        <th scope="col">总涨幅</th>
+                                        <th scope="col">平均涨幅</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="boxall" style="height: 300px">
+                        <div class="alltitle">行业板块跌幅榜</div>
+                        <div class="navboxall">
+                            <table class="table1" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tbody>
+                                    <tr>
+                                        <th scope="col" class="toptop">排名</th>
+                                        <th scope="col">行业板块</th>
+                                        <th scope="col">总跌幅</th>
+                                        <th scope="col">平均跌幅</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+                    <div class="boxall" style="height:320px">
+                        <div class="alltitle">涨跌额TOP-5股票</div>
+                        <div class="navboxall" id="echart2"></div>
+                    </div>
+
+
+                </li>
+            </ul>
+
+        </div>
+    </div>
+
+    <script>
+
+
+
+
+        var datac=[]
+        $.ajax(
+            {
+                type: "get",
+                url: "/stock/chg1",
+                contentType: "application/json",
+                async:false,
+                success: function(res){
+                    console.log("=====res1: =======")
+                    console.log(res);
+                    datac=res;
+                }
+
+            });
+
+        var table1=document.querySelectorAll("table")[0];
+        //var tbody1=document.getElementsByClassName("table1")
+        for(var i=0;i<datac.length;i++){
+            var tr=document.createElement('tr');
+            var td=document.createElement('td');
+            var span=document.createElement('span');
+            span.innerHTML=i+1;
+            td.appendChild(span)
+            tr.appendChild(td);
+
+            var k=1;
+            for (var s in datac[i]){
+                var td=document.createElement('td');
+                td.innerHTML=datac[i][s];
+                if(k>1) {
+                    var br=document.createElement('br');
+                    td.appendChild(br)
+                }
+                tr.appendChild(td)
+                k=k+1;
+            }
+            table1.appendChild(tr);
+        }
+
+        var dataz=[]
+        $.ajax(
+            {
+                type: "get",
+                url: "/stock/chg2",
+                contentType: "application/json",
+                async:false,
+                success: function(res){
+                    console.log("=====res1: =======")
+                    console.log(res);
+                    dataz=res;
+                }
+
+            });
+
+        var table=document.querySelectorAll("table")[1];
+        for(var i=0;i<dataz.length;i++){
+            var tr=document.createElement('tr');
+            var td=document.createElement('td');
+            var span=document.createElement('span');
+            span.innerHTML=i+1;
+            td.appendChild(span)
+            tr.appendChild(td);
+
+            var k=1;
+            for (var s in dataz[i]){
+                var td=document.createElement('td');
+                td.innerHTML=dataz[i][s];
+                if(k>1) {
+                    var br=document.createElement('br');
+                    td.appendChild(br)
+                }
+                tr.appendChild(td)
+                k=k+1;
+            }
+            table.appendChild(tr);
+        }
+
+        $(function() {
+            $('.wrap,.adduser').liMarquee({
+                direction: 'up',
+                /*向上滚动*/
+                runshort: false,
+                /*内容不足时不滚动*/
+                scrollamount: 20 /*速度*/
+            });
+        });
+    </script>
+
+</body>
+
+</html>

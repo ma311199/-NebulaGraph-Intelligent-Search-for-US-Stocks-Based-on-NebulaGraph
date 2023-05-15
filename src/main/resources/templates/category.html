@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>行业涨跌额</title>
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/c.css">
+    <link rel="stylesheet" href="/static/css/jPages.css">
+    <link rel="stylesheet" href="/static/css/animate.css">
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+    <script type="text/javascript" src="/static/js/jPages.js"></script>
+    <script type="text/javascript" src="/static/js/jPages.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.liMarquee.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.cxselect.min.js"></script>
+</head>
+
+<body>
+<div style="height: 40px"></div>
+<div id="container" style="height: 650px"></div>
+<script type="text/javascript">
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+        renderer: 'canvas',
+        useDirtyRect: false
+    });
+    var app = {};
+
+    var option;
+    var category=[];
+    var maxdiff=[];
+    var mindiff=[];
+    //请求后台数据
+    $.ajax({
+        type: "get",
+        url: "/stock/categorydiff",
+        async:false,
+        contentType: "application/json",
+        success: function(res){
+            for (var i = 0; i < res.length ; i++) {
+                category.push(res[i].category);
+                maxdiff.push(res[i].maxdiff);
+                mindiff.push(res[i].mindiff);
+            }
+        }
+    });
+
+    option = {
+        title: {
+            text: '全部股票不同行业涨跌额情况'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        legend: {},
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'value',
+            boundaryGap: [0, 0.01]
+        },
+        yAxis: {
+            type: 'category',
+            data: category
+        },
+        series: [
+            {
+                name: '行业单股最大涨跌额',
+                type: 'bar',
+                data: maxdiff,
+                color :"#D4EE5E"
+            },
+            {
+                name: '行业单股最小涨跌额',
+                type: 'bar',
+                data: mindiff
+            }
+        ]
+    };
+
+    if (option && typeof option === 'object') {
+        myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    body{
+        background-image: url("/static/img/bg.jpeg");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+        font: 20px Helvetica Neue,Helvetica,PingFang SC,Tahoma,Arial,sans-serif;
+    }
+    .layui-input-inline input{
+        width: 140%;
+    }
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+</head>
+<body>
+<div >
+    <div class="layui-container" style="height: 560px;margin-top: 175px">
+        <div class="layui-row">
+            <div class="layui-col-md-offset6" style="margin-bottom: 30px;font-size: 30px;font-family: 华文琥珀;color: #D4EE5E">用户登录</div>
+        </div>
+        <form class="layui-form" action="" style="padding-left: 400px">
+            <div class="layui-form-item" >
+                <label class="layui-form-label">用户名</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="name" required  lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">密码</label>
+                <div class="layui-input-inline">
+                    <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+                </div>
+<!--                <div class="layui-form-mid layui-word-aux">辅助文字</div>-->
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block" >
+                    <button class="layui-btn" lay-submit lay-filter="formDemo">登录</button>
+                    <button class="layui-btn"><a href="/templates/register.html">注册</a></button>
+                    <button type="reset" class="layui-btn layui-btn-primary layui-bg-green">重置</button>
+                </div>
+            </div>
+        </form>
+
+        <script>
+            //Demo
+            layui.use('form', function(){
+                var form = layui.form;
+
+                //监听提交
+                form.on('submit(formDemo)', function(data){
+                    // console.log(data.field.name+"   "+data.field.password);
+                    //layer.msg("提交登录表单: "+JSON.stringify(data.field),{icon:6});
+                    var name=data.field.name;
+                    var password=data.field.password;
+                    $.ajax(
+                        {
+                            type: "GET",
+                            url: "/stock/flag",
+                            contentType: "application/json",
+                            dataType: "json", //后端返回的数据格式
+                            data:{"name":name,"password":password},
+                            async:false,
+                            success: function(res){
+                                var fl=res['status'];
+                                if (fl==0) {
+                                    layer.msg("登录失败，未注册或密码错误", {icon: 5});
+                                } else {
+                                    layer.msg("登录成功,3秒后自动跳转首页", {icon: 6});
+                                    location.reload();
+                                }
+                            },
+                            error:function (msg){
+                                layer.msg("访问失败"+msg,{icon: 5});
+                            }
+                        }
+                    );
+                    return false;
+                });
+            });
+        </script>
+    </div>
+</div>
+</body>
+</html>

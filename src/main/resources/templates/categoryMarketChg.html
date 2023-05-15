@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>交易所不同行业涨跌幅</title>
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/c.css">
+    <link rel="stylesheet" href="/static/css/animate.css">
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+</head>
+
+<body>
+<div style="height: 40px"></div>
+<div>
+    <div class="layui-container">
+        <form class="layui-form" action="" style="padding-left: 250px;display: flex">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                     <label class="layui-form-label">选择日期</label>
+                     <div class="layui-input-block">
+                         <input type="text" class="layui-input" name="part_dt" id="t1">
+                     </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">选择交易所</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="market" value="美国交易所" title="美国交易所">
+                    <input type="radio" name="market" value="纽约交易所" title="纽约交易所">
+                    <input type="radio" name="market" value="纳斯达克交易所" title="纳斯达克交易所">
+                    <button class="layui-btn layui-btn-sm layui-btn-radius layui-border-orange" lay-submit lay-filter="formDemo">点击确认</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div id="container" style="height: 800px"></div>
+    <script>
+        //Demo
+        layui.use(['form','layer','laydate'], function(){
+            var form = layui.form;
+            var layer=layui.layer;
+            var laydate=layui.laydate;
+            //执行一个laydate实例
+
+            var date = new Date();
+            var day =date.getDate()-1 ; //日
+            var month=date.getMonth()+1 ; //月
+            var year=date.getFullYear(); //年
+            laydate.render({
+                elem: '#t1',//指定元素
+                format:"yyyyMMdd",
+                min: '2023-03-14',
+                max: year+"-"+month+"-"+day,
+                theme:'grid',
+                calendar: true
+            });
+            function topData(market,part_dt) {
+                layer.msg(market+"的"+part_dt+"行业数据获取");
+                $.ajax({
+                        type: "GET",
+                        url: "/stock/chgMarketCategory",
+                        contentType: "application/json",
+                        data: {"market":market,"part_dt":part_dt},
+                        async:false,
+                        success: function(res){
+                            console.log("=====res1: 成功=======")
+                        },
+                        error:function (msg){
+                            console.log(market+"失败了")
+                        }
+                    }
+                );
+
+            }
+            //监听提交
+            form.on('submit(formDemo)', function(data){
+                // layer.msg("提交登录表单: "+JSON.stringify(data.field),{icon:6});
+                var market=data.field.market;
+                topData(market,data.field.part_dt);
+                location.reload();
+                return false;
+            });
+        });
+
+    </script>
+
+    <script type="text/javascript">
+        var dom = document.getElementById('container');
+        var myChart = echarts.init(dom, null, {
+            renderer: 'canvas',
+            useDirtyRect: false
+        });
+        var app = {};
+
+        var option;
+        var category=[];
+        var maxChg=[];
+        var minChg=[];
+        var avgChg=[];
+        var sumChg=[];
+        //请求后台数据
+        $.ajax({
+            type: "get",
+            url: "/stock/chgMarketCategoryList",
+            async:false,
+            contentType: "application/json",
+            success: function(res){
+                for (var i = 0; i < res.length ; i++) {
+                    category.push(res[i].category);
+                    maxChg.push(res[i].maxChg);
+                    minChg.push(res[i].minChg);
+                    avgChg.push(res[i].avgChg);
+                    sumChg.push(res[i].sumChg);
+                }
+            }
+        });
+
+        option = {
+            title: {
+                text: '不同行业涨跌幅(%)情况'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {},
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                boundaryGap: [0, 0.01]
+            },
+            yAxis: {
+                type: 'category',
+                data: category
+            },
+            series: [
+                {
+                    name: '行业单股最大涨跌幅',
+                    type: 'bar',
+                    data: maxChg,
+                    color :"#D4EE5E"
+                },
+                {
+                    name: '行业单股最小涨跌幅',
+                    type: 'bar',
+                    data: minChg,
+                    color: "red"
+                },
+                {
+                    name: '行业平均涨跌幅',
+                    type: 'bar',
+                    data: avgChg,
+                    color: "green"
+                },
+                {
+                    name: '行业总涨跌幅',
+                    type: 'bar',
+                    data: sumChg,
+                    color: "blue"
+                }
+            ]
+        };
+
+        if (option && typeof option === 'object') {
+            myChart.setOption(option);
+        }
+
+        window.addEventListener('resize', myChart.resize);
+    </script>
+</div>
+</body>
+</html>

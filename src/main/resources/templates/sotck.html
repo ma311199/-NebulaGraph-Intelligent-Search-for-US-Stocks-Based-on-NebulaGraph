@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>全部美股数据</title>
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/c.css">
+    <link rel="stylesheet" href="/static/css/jPages.css">
+    <link rel="stylesheet" href="/static/css/animate.css">
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+    <script type="text/javascript" src="/static/js/jPages.js"></script>
+    <script type="text/javascript" src="/static/js/jPages.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.liMarquee.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.cxselect.min.js"></script>
+</head>
+
+<body>
+<div class="JavaS" style="background-image: url(/static/img/a2.jpg);height: 100px;line-height: 100px">
+    <a href="" target="_blank" style="font-size: 33px ;color: greenyellow; margin-left: 50% ;font-family: 华文彩云;width: 300px;height: 100px;display: block" >股票数据明细</a></div>
+
+<table border="1" id="st" style="margin: 10px auto ;">
+    <tbody id="it">
+    <tr id="zhe" style="background-color: #89b5e1;color: white">
+        <th >代码</th><th>名称</th><th>涨跌幅</th><th>涨跌额</th><th>收盘价</th><th>振幅</th><th>开盘价</th>
+        <th>最高价</th><th>最低价</th><th>成交量</th><th>市值</th><th>市盈率</th><th>行业板块</th><th>证券交易所</th>
+    </tr>
+    </tbody>
+    <tbody id="itemContainer">
+    </tbody>
+</table>
+<div>
+    <form style="float: left">
+        <label style="margin-left: 0">每页显示: </label>
+        <select>
+            <option>20</option>
+            <option>30</option>
+            <option>50</option>
+        </select>
+    </form>
+    <div class="holder" style="margin-left: 1000px"></div>
+</div>
+
+<!--<button onclick="getthis()">获取</button>-->
+<script>
+    var data=[]
+    $.ajax(
+        {
+            type: "get",
+            url: "/stock/usa",
+            contentType: "application/json",
+            async:false,
+            success: function(res){
+                console.log("=====res1: =======")
+                data=res;
+            }
+
+        }
+    );
+
+    //var id = document.getElementById("st");
+    var tbody = document.querySelectorAll("tbody")[1];
+
+
+    for(var i=0;i<data.length;i++){
+        var tr1=document.createElement('tr');
+        var pi=1;
+        for (var key in data[i]) {
+            var td=document.createElement('td');
+            if(pi<=2) {
+                style="color: greenyellow; "
+                td.innerHTML="<a href=\"http://localhost:8081/stock/stockA\" target=\"_blank\" style=\"color: #c4c454; \">"+data[i][key]+"</a>";
+            }else
+            if(data[i][key]==null)
+                td.innerText=data[i][key];
+
+            else if(pi==3 ) {
+
+                if (parseFloat(data[i][key])<0)
+                    td.innerText =  data[i][key] + "%";
+                else
+                    td.innerText = '+'+data[i][key] + "%";
+            }
+            else  if(pi==4 && parseFloat(data[i][key])>0){
+                td.innerText='+'+data[i][key];
+            }else
+                td.innerText=data[i][key];
+
+            pi++;
+            tr1.appendChild(td);
+        }
+        tbody.appendChild(tr1);
+
+    }
+    function MakeNegative() {
+        TDs = document.getElementsByTagName('td');
+
+        //td=document.querySelectorAll("td");
+        for (var i = 2; i < TDs.length;) {
+                var temp = TDs[i];
+                //console.log(temp.innerText + "嘿嘿")
+                if (temp.innerText != '') {
+
+                    if (temp.firstChild.nodeValue.indexOf('-') == 0)
+                        temp.className = "negative";
+                    else if (temp.firstChild.nodeValue.indexOf('+') == 0)
+                        temp.className = "negative1";
+                }
+                if(i%2==0){
+                    i++;
+                }else
+                {
+                    i=i+13;
+                }
+            }
+
+    }
+
+    MakeNegative();
+
+
+   function  getthis(){
+       var table=document.getElementById("st")
+       var tr=table.getElementsByTagName("tr");
+       for(var i=0;i<tr.length;i++)tr[i].onclick=function () {
+           var tow =$(this).children().eq(0).text();
+           var da=[];
+           da.push(tow);
+           console.log(da);
+           $.ajax(
+               {
+                   type: "GET",
+                   url: "/stock/resultA",
+                   contentType: "application/json",
+                   data:{"cname":tow},
+                   async:false,
+                   success: function(res){
+                       console.log("=====res1: =======")
+                       console.log(res)
+                   },
+                   error:function (msg){
+                       console.log(msg+"失败了")
+                   }
+               }
+           );
+       }
+   }
+
+   getthis()
+    $(function() {
+
+        /* initiate plugin */
+        $("div.holder").jPages({
+            containerID : "itemContainer",
+            perPage : 20,
+            previous : "上一页",
+            next : "下一页",
+            delay : 10    //每个单独页面之间显示的时间的间隔
+        });
+
+        /* on select change */
+        $("select").change(function(){
+            /* get new nº of items per page */
+            var newPerPage = parseInt( $(this).val() );
+
+            /* destroy jPages and initiate plugin again */
+            $("div.holder").jPages("destroy").jPages({
+                containerID   : "itemContainer",
+                perPage       : newPerPage,
+                previous : "上一页",
+                next : "下一页",
+            });
+        });
+
+    });
+
+</script>
+
+</body>
+
+
+</html>

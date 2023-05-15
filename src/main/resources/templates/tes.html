@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+</head>
+<body>
+<div class="layui-container" >
+    <ul class="layui-nav" lay-filter="">
+        <li class="layui-nav-item"><a href="javascript:" id="cd">最新活动</a></li>
+        <li class="layui-nav-item"><a href="javascript:" id="test1">产品</a></li>
+        <li class="layui-nav-item"><a href="javascript:">大数据</a></li>
+        <li class="layui-nav-item">
+            <a href="javascript:;">解决方案</a>
+            <dl class="layui-nav-child"> <!-- 二级菜单 -->
+                <dd><a href="">移动模块</a></dd>
+                <dd><a href="">后台模版</a></dd>
+                <dd><a href="">电商平台</a></dd>
+            </dl>
+        </li>
+        <li class="layui-nav-item"><a href="">社区</a></li>
+    </ul>
+</div>
+<div class="layui-side layui-bg-black">
+    <div class="layui-side-scroll">
+        <!-- 左侧导航区域（可配合layui已有的垂直导航） layui-nav-tree：树型展开，layui-nav-side：侧边导航栏追加-->
+        <ul class="layui-nav layui-nav-tree " lay-filter="test" id="ced">
+            <!--    layui-nav-item：一个菜单            layui-nav-itemed：浏览器打开自动张开-->
+            <li class="layui-nav-item layui-nav-itemed" >
+                <a class="" href="javascript:;">menu group 1</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;">menu 1</a></dd>
+                    <dd><a href="javascript:;">menu 2</a></dd>
+                    <dd><a href="javascript:;">menu 3</a></dd>
+                    <dd><a href="">the links</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item " >
+                <a href="javascript:;">menu group 2</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;">list 1</a></dd>
+                    <dd><a href="javascript:;">list 2</a></dd>
+                    <dd><a href="">超链接</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item"><a href="javascript:;">click menu item</a></li>
+            <li class="layui-nav-item"><a href="">the links</a></li>
+        </ul>
+    </div>
+</div>
+
+<script type="text/javascript">
+    layui.use(['form','layer','laydate','dropdown'],function () {
+        var layer=layui.layer;
+        var form=layui.form;
+        var laydate=layui.laydate;
+        layer.msg("哈哈",{icon:5});
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            layer.msg(JSON.stringify(data.field));
+            return false;
+        });
+        //laydate.render({elem:'#test1'});
+        var test=document.getElementById("test1");
+        test.onclick=function(){
+            alert("====");
+            console.log("点击了");
+            layer.msg("别乱点",{icon: 6})
+        };
+
+        var t1=document.getElementById("cd");
+        t1.onclick=function(){
+            alert("==111==");
+            console.log("点击1111了");
+            layer.msg("别乱点",{icon: 6})
+            var ced=document.getElementById("ced")
+            ced.innerHTML="<li class=\"layui-nav-item layui-nav-itemed\" >\n" +
+                "                <a class=\"\" href=\"javascript:;\">menu34</a>\n" +
+                "                <dl class=\"layui-nav-child\">\n" +
+                "                    <dd><a href=\"javascript:;\">da 1</a></dd>\n" +
+                "                    <dd><a href=\"javascript:;\">小 2</a></dd>\n" +
+                "                    <dd><a href=\"javascript:;\">中 3</a></dd>\n" +
+                "                    <dd><a href=\"\">the links</a></dd>\n" +
+                "                </dl>\n" +
+                "            </li>";
+        };
+        //$(#test1)
+        var dropdown = layui.dropdown;
+
+        //菜单点击事件，其中 docDemoMenu1 对应的是菜单结构上的 id 指
+        dropdown.on('click(docDemoMenu1)', function(options){
+            var othis = $(this); //当前菜单列表的 DOM 对象
+            console.log(options); //菜单列表的 lay-options 中的参数
+        });
+    });
+</script>
+</body>
+</html>

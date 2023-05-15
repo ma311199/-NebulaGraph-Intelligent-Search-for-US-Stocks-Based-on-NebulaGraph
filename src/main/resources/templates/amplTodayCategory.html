@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="height: 100%">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <!--<script type="text/javascript" src="/static/js/echarts.min.js"></script>-->
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+</head>
+<body style="height: 100%; margin: 0">
+<div class="layui-container">
+    <form class="layui-form" action="" style="padding-left: 250px;display: flex">
+        <div class="layui-inline">
+            <label class="layui-form-label">选择日期</label>
+            <div class="layui-input-block">
+                <input type="text" class="layui-input" name="partdt" id="t1">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">选择</label>
+            <div class="layui-input-block">
+                <input type="radio" name="amplValue" value="sumAmpl" title="行业总振幅">
+                <input type="radio" name="amplValue" value="avgAmpl" title="行业平均振幅">
+                <input type="radio" name="amplValue" value="maxAmpl" title="行业单股最大振幅">
+                <input type="radio" name="amplValue" value="minAmpl" title="行业单股最小振幅">
+                <button class="layui-btn layui-btn-sm layui-btn-radius layui-border-orange" lay-submit lay-filter="formDemo">点击确认</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="container" style="height: 600px"></div>
+<script>
+    //Demo
+    var category=[];
+    var value=[];
+    layui.use(['form','layer','laydate'], function(){
+        var form = layui.form;
+        var laydate=layui.laydate;
+        var layer=layui.layer;
+
+        var date = new Date();
+        var day =date.getDate()-1 ; //日
+        var month=date.getMonth()+1 ; //月
+        var year=date.getFullYear(); //年
+        laydate.render({
+            elem: '#t1',//指定元素
+            format:"yyyyMMdd",
+            min: '2023-03-14',
+            max: year+"-"+month+"-"+day,
+            theme:'grid',
+            calendar: true
+        });
+
+        function topData(index,partdt) {
+            $.ajax({
+                    type: "GET",
+                    url: "/stock/amplIndex",
+                    contentType: "application/json",
+                    data: {"index": index,"partdt":partdt},
+                    async: false,
+                    success: function (res) {
+                        console.log(res + "成功")
+                    },
+                    error: function (msg) {
+                        console.log(msg + "失败了")
+                    }
+                }
+            );
+        }
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            layer.msg("提交登录表单: "+JSON.stringify(data.field),{icon:6});
+            var amplValue=data.field.amplValue;
+            var partdt=data.field.partdt;
+            topData(amplValue,partdt);
+            location.reload();
+            return false;
+        });
+    });
+</script>
+<script type="text/javascript">
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+        renderer: 'canvas',
+        useDirtyRect: false
+    });
+    var app = {};
+
+    var option;
+    var category=[];
+    var amplIndex=[];
+    //请求后台数据
+    $.ajax({
+        type: "get",
+        url: "/stock/amplIndexList",
+        async:false,
+        contentType: "application/json",
+        success: function(res){
+            for (var i = 0; i < res.length ; i++) {
+                category.push(res[i].category);
+                amplIndex.push(res[i].va);
+            }
+        }
+    });
+
+    option = {
+        title: {
+            text: '不同行业振幅(%)情况'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        xAxis: {
+            type: 'category',
+            data: category
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [
+            {
+                data: amplIndex,
+                type: 'bar'
+            }
+        ]
+    };
+
+    if (option && typeof option === 'object') {
+        myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+</script>
+</body>
+</html>

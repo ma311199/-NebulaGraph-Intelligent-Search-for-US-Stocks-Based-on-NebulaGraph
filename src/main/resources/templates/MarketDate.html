@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+</head>
+<body style="height: 620px; margin: 0">
+<div style="height: 40px"></div>
+<div id="container" style="height: 600px"></div>
+
+
+<script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.js"></script>
+<script type="text/javascript">
+    var part_dt=[];
+    part_dt.push("part_dt")
+    var UsaTd=[];
+    UsaTd.push("美国交易所")
+    var NuTd=[];
+    NuTd.push("纽约交易所")
+    var NsTd=[];
+    NsTd.push("纳斯达克交易所")
+    var data=[];
+    $.ajax(
+        {
+            type: "get",
+            url: "/stock/marketCategoryNumber",
+            contentType: "application/json",
+            async:false,
+            success: function(res){
+                for (var i = 0; i < res.length ; i++) {
+                    part_dt.push(res[i].part_dt+"");
+                    UsaTd.push(res[i].usaTd);
+                    NuTd.push(res[i].nuTd);
+                    NsTd.push(res[i].nsTd);
+                }
+                data.push(part_dt);
+                data.push(UsaTd);
+                data.push(NuTd);
+                data.push(NsTd);
+            }
+
+        }
+    );
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+        renderer: 'canvas',
+        useDirtyRect: false
+    });
+    var app = {};
+
+    var option;
+
+    setTimeout(function () {
+        option = {
+            legend: {},
+            tooltip: {
+                trigger: 'axis',
+                showContent: false
+            },
+            dataset: {
+                source:data,
+            },
+            xAxis: { type: 'category' },
+            yAxis: { gridIndex: 0 },
+            grid: { top: '55%' },
+            series: [
+                {
+                    type: 'line',
+                    smooth: true,
+                    seriesLayoutBy: 'row',
+                    emphasis: { focus: 'series' }
+                },
+                {
+                    type: 'line',
+                    smooth: true,
+                    seriesLayoutBy: 'row',
+                    emphasis: { focus: 'series' }
+                },
+                {
+                    type: 'line',
+                    smooth: true,
+                    seriesLayoutBy: 'row',
+                    emphasis: { focus: 'series' }
+                },
+                {
+                    type: 'pie',
+                    id: 'pie',
+                    radius: '30%',
+                    center: ['50%', '25%'],
+                    emphasis: {
+                        focus: 'self'
+                    },
+                    label: {
+                        formatter: '{b}: {@20230314} ({d}%)'
+                    },
+                    encode: {
+                        itemName: 'part_dt',
+                        value: '20230314',
+                        tooltip: '20230314'
+                    }
+                }
+            ]
+        };
+        myChart.on('updateAxisPointer', function (event) {
+            const xAxisInfo = event.axesInfo[0];
+            if (xAxisInfo) {
+                const dimension = xAxisInfo.value + 1;
+                myChart.setOption({
+                    series: {
+                        id: 'pie',
+                        label: {
+                            formatter: '{b}: {@[' + dimension + ']} ({d}%)'
+                        },
+                        encode: {
+                            value: dimension,
+                            tooltip: dimension
+                        }
+                    }
+                });
+            }
+        });
+        myChart.setOption(option);
+    });
+
+    if (option && typeof option === 'object') {
+        myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+</script>
+</body>
+</html>

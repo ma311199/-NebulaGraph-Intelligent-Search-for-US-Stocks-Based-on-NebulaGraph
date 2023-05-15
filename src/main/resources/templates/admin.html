@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>NebulaGraph可视化平台</title>
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+</head>
+<body class="layui-layout-body ">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs layui-bg-black">股票数据可视化平台</div>
+        <!-- 头部区域（可配合layui 已有的水平导航），layui-nav菜单导航栏，需要借助element模块才能使用 ，layui-bg-cyan导航栏背景-->
+        <ul class="layui-nav layui-layout-left">
+            <!-- 移动端显示 -->
+            <li class="layui-nav-item layui-show-xs-inline-block layui-hide-sm" lay-header-event="menuLeft">
+                <i class="layui-icon layui-icon-spread-left"></i>
+            </li>
+<!--           &lt;!&ndash;layui-this：指向当前页面的菜单，不建议使用&ndash;&gt;-->
+            <li class="layui-nav-item layui-hide-xs"><a class="layui-icon layui-icon-search" href="http://nebula-node:8081/templates/NebulaGraph.html" >NebulaGraph Studio可视化智能查询
+            </a></li>
+            <li class="layui-nav-item layui-hide-xs"><a class="layui-icon layui-icon-search" href="http://localhost:8081/stock/stockA" id="m1">搜索</a></li>
+            <input type="text" id="ml" placeholder="请输入股票" autocomplete="off" class="layui-input" style="width: 30%;margin-top: -50px;margin-left: 370px">
+        </ul>
+               <!--    layui-layout-right右边导航栏    -->
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item" ><span id="showTime"></span></li>
+            <script>
+                var t = null;
+                t = setTimeout(time, 1000); /*开始运行*/
+                function time() {
+                    clearTimeout(t); /*清除定时器*/
+                    dt = new Date();
+                    var y = dt.getFullYear();
+                    var mt = dt.getMonth() + 1;
+                    var day = dt.getDate();
+                    var h = dt.getHours();
+                    var m = dt.getMinutes();
+                    var s = dt.getSeconds();
+                    document.getElementById("showTime").innerHTML = y + "年" + mt + "月" + day + "日" + h + "时" + m + "分" + s + "秒";
+                    t = setTimeout(time, 1000);
+                }
+            </script>
+            <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+                <a href="javascript:;">
+                    <img src="http://localhost:8081/static/img/a1.jpg" class="layui-nav-img">
+                    admin
+<!--                    <span class="layui-badge-dot layui-bg-gray"></span>-->
+                         <!--   layui-badge-dot：小圆点 ，不能加文字        -->
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">个人资料</a></dd>
+                    <dd><a href="">退出</a></dd>
+                </dl>
+            </li>
+<!--            移动端设置-->
+            <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
+                <a href="javascript:;">
+                    <i class="layui-icon layui-icon-more-vertical"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） layui-nav-tree：树型展开，layui-nav-side：侧边导航栏追加-->
+            <dl class="layui-nav layui-nav-tree " lay-filter="test" id="meng">
+<!--    layui-nav-item：一个菜单            layui-nav-itemed：浏览器打开自动张开-->
+                <li class="layui-nav-item"><a href="">首页</a></li>
+                <li class="layui-nav-item"><a href="javascript:;" id="ma1">全部美股数据</a></li>
+                <li class="layui-nav-item"><a href="javascript:;" id="ma8">美股新闻</a></li>
+                <li class="layui-nav-item"><a href="javascript:;" id="ma2">中概股涨跌排行榜</a></li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;" id="ma3">股票价格分析</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" id="ma31">单股Top100涨跌额</a></dd>
+                        <dd><a href="javascript:;" id="ma32">当日不同行业涨跌额</a></dd>
+                        <dd><a href="javascript:;" id="ma33">不同周期行业涨跌额</a></dd>
+                        <dd><a href="javascript:;" id="ma34">不同证券交易所行业涨跌额</a></dd>
+                        <dd><a href="javascript:;" id="ma35">单股Top100涨跌幅</a></dd>
+                        <dd><a href="javascript:;" id="ma36">当日不同行业涨跌幅</a></dd>
+                        <dd><a href="javascript:;" id="ma37">不同周期行业涨跌幅</a></dd>
+                        <dd><a href="javascript:;" id="ma38">不同证券交易所行业涨跌幅</a></dd>
+                        <dd><a href="javascript:;" id="ma39">单股Top100振幅</a></dd>
+                        <dd><a href="javascript:;" id="ma40">不同周期行业振幅</a></dd>
+                        <dd><a href="javascript:;" id="ma41">不同证券交易所行业振幅</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;"id="ma4">股票交易量分析</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;"id="ma44">交易量Top</a></dd>
+                        <dd><a href="javascript:;"id="ma45">不同周期行业成交量</a></dd>
+                        <dd><a href="javascript:;"id="ma46">不同交易所不同周期行业成交量</a></dd>
+                    </dl>
+                </li>
+
+                <li class="layui-nav-item">
+                    <a href="javascript:;"id="ma5">行业板块分析</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;"id="ma51">行业股票数量</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;"id="ma6">证券交易所分析</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;"id="ma61">纳斯达克交易所板块涨幅</a></dd>
+                        <dd><a href="javascript:;"id="ma62">纽约交易所板块涨幅</a></dd>
+                        <dd><a href="javascript:;"id="ma63">美国交易所板块涨幅</a></dd>
+                        <dd><a href="javascript:;"id="ma64">不同日期股票数量变化</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" >
+                    <a class="" href="javascript:;" id="ma7">大盘指数</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;"id="ma71">道琼斯涨跌排行榜</a></dd>
+                        <dd><a href="javascript:;"id="ma72">标普500涨跌排行榜</a></dd>
+                        <dd><a href="javascript:;"id="ma73">纳斯达克指数排行榜</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item" >
+                    <a class="" href="javascript:;" id="ma9">市盈率分析</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;"id="ma91">市盈率Top</a></dd>
+                    </dl>
+                </li>
+            </dl>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div id="ma">
+            <iframe width="100%" height="980px" frameborder="no" border="0" marginwidth="0" marginheight="0" src="http://localhost:8081/stock/index"></iframe>
+        </div>
+    </div>
+</div>
+<!--<script src="/static/js/layui.js"></script>-->
+<script>
+    //JS
+    layui.use(['element', 'layer', 'util','form'], function(){
+        var element = layui.element
+            ,layer = layui.layer
+            ,util = layui.util
+            ,form=layui.form
+            ,$ = layui.$;
+        // layer.msg("Hello World",{icon: 6})
+
+        //头部事件
+        util.event('lay-header-event', {
+            //左侧菜单事件
+            menuLeft: function(othis){
+                //icon - 图标。信息框和加载层的私有参数
+                layer.msg('展开头部左侧菜单导航栏的操作', {icon: 0});
+            }
+            //头部右侧导航栏操作
+            ,menuRight: function(){
+                layer.open({
+                    type: 1,
+                    title:"哈哈"
+                    ,content: '<div style="padding: 15px;">处理右侧面板的操作</div>'
+                    // content:'http://erya.mooc.chaoxing.com/'
+                    ,area: ['260px', '100%']
+                    ,offset: 'rt' //右上角
+                    ,anim: 5
+                    ,shadeClose: true //如果你的shade是存在的，那么你可以设定shadeClose来控制点击弹层外区域关闭。
+                });
+            }
+        });
+
+        var ma1=document.getElementById("ma1");
+        ma1.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/all\"></iframe>";
+        };
+
+        var ma8=document.getElementById("ma8");
+        ma8.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/newsStockUSA\"></iframe>";
+        };
+
+        var ma2=document.getElementById("ma2");
+        ma2.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/chainUSA\"></iframe>";
+        };
+
+        var ma71=document.getElementById("ma71");   //道琼斯排行榜
+        ma71.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/index_number_DJIA\"></iframe>";
+        };
+
+        var ma72=document.getElementById("ma72");  //标普500排行帮
+        ma72.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/index_number_St500\"></iframe>";
+        };
+
+        var ma73=document.getElementById("ma73");  //纳斯达克排行榜
+        ma73.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/index_number_NASDAQ\"></iframe>";
+        };
+
+        function topData(ln,tab,date,api) {  //默认开启的是日、升序
+            $.ajax(
+                {
+                    type: "GET",
+                    url: "/stock/"+api,
+                    contentType: "application/json",
+                    data:{"ln":ln,"tab":tab,"date":date},
+                    async:false,
+                    success: function(res){
+                        console.log("=====res1: 成功=======")
+                    },
+                    error:function (msg){
+                        console.log(msg+"失败了")
+                    }
+                }
+            );
+        }
+        var ma31=document.getElementById("ma31");
+        ma31.onclick=function () {
+            ln='desc';
+            tab='stock_ads.ads_filter_stock_usa_day';
+            date=1;
+            api="diffValue";
+            topData(ln,tab,date,api);
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/top\"></iframe>";
+        };
+
+        var ma32=document.getElementById("ma32");
+        ma32.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"660px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/category.html\"></iframe>";
+        };
+
+        var ma33=document.getElementById("ma33");
+        ma33.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/categorydiff.html\"></iframe>";
+        };
+
+        var ma34=document.getElementById("ma34");
+        ma34.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"660px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/categoryMarketdiff.html\"></iframe>";
+        };
+
+        var ma35=document.getElementById("ma35");
+        ma35.onclick=function () {
+            ln='desc';
+            tab='stock_ads.ads_filter_stock_usa_day';
+            date=1;
+            api="chgValue";
+            topData(ln,tab,date,api);
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/chgTop.html\"></iframe>";
+        };
+        var ma36=document.getElementById("ma36");
+        ma36.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/chg-pie.html\"></iframe>";
+        };
+
+        var ma37=document.getElementById("ma37");
+        ma37.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/categorychg.html\"></iframe>";
+        };
+
+        var ma38=document.getElementById("ma38");
+        ma38.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/categoryMarketchg.html\"></iframe>";
+        };
+
+        var ma39=document.getElementById("ma39");
+        ma39.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/amplitudeTop.html\"></iframe>";
+        };
+
+        var ma40=document.getElementById("ma40");
+        ma40.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/amplTodayCategory.html\"></iframe>";
+        };
+
+        var ma41=document.getElementById("ma41");
+        ma41.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/categoryMarketAmpl.html\"></iframe>";
+        };
+
+        var ma61=document.getElementById("ma61");
+        ma61.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/marketNasdaq\"></iframe>";
+        };
+
+        var ma62=document.getElementById("ma62");
+        ma62.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"1080px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/stock/marketNyse\"></iframe>";
+        };
+
+        var ma44=document.getElementById("ma44");
+        ma44.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/VolumeTop.html\"></iframe>";
+        };
+
+        var ma45=document.getElementById("ma45");
+        ma45.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/VolumeCategory.html\"></iframe>";
+        };
+
+        var ma46=document.getElementById("ma46");
+        ma46.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/VolumeCategoryMarket.html\"></iframe>";
+        };
+
+        var ma64=document.getElementById("ma64");
+        ma64.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/MarketDate.html\"></iframe>";
+        };
+
+        var ma51=document.getElementById("ma51");
+        ma51.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/CategoryNumber.html\"></iframe>";
+        };
+
+        var ma91=document.getElementById("ma91");
+        ma91.onclick=function () {
+            var ma=document.getElementById("ma");
+            ma.innerHTML="<iframe width=\"100%\" height=\"680px\" frameborder=\"no\" border=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"http://localhost:8081/templates/PeTop.html\"></iframe>";
+        };
+
+        var m1=document.getElementById("m1");
+        m1.onclick=function () {
+            var ml=document.getElementById("ml");
+            var cname=ml.value;
+            $.ajax(
+                {
+                    type: "GET",
+                    url: "/stock/resultA",
+                    contentType: "application/json",
+                    data:{"cname":cname},
+                    async:false,
+                    success: function(res){
+                        console.log("=====res1: =======")
+                        console.log(res)
+                    },
+                    error:function (msg){
+                        console.log(msg+"失败了")
+                    }
+                }
+            );
+        };
+
+    });
+</script>
+</body>
+</html>

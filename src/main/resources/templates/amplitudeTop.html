@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>振幅TOP</title>
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+</head>
+<body>
+<div >
+    <div class="layui-container">
+        <form class="layui-form" action="" style="padding-left: 250px;display: flex">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+<!--                    <label class="layui-form-label">选择周期</label>-->
+<!--                    <div class="layui-input-block">-->
+<!--                        <input type="text" class="layui-input" name="part_dt" id="t1">-->
+<!--                    </div>-->
+                    <label class="layui-form-label">日期范围</label>
+                    <div class="layui-inline" id="test-range">
+                        <div class="layui-input-inline">
+                            <input type="text" id="startDate" name="srcDate" class="layui-input" placeholder="开始日期">
+                        </div>
+                        <div class="layui-form-mid">-</div>
+                        <div class="layui-input-inline">
+                            <input type="text" id="endDate" name="tarDate" class="layui-input" placeholder="结束日期">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">涨跌选择</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="sh" value="desc" title="涨">
+                    <input type="radio" name="sh" value="asc" title="跌">
+                    <button class="layui-btn layui-btn-sm layui-btn-radius layui-border-orange" lay-submit lay-filter="formDemo">点击确认</button>
+                </div>
+            </div>
+        </form>
+
+        <script>
+            //Demo
+            layui.use(['form','layer','laydate'], function(){
+                var form = layui.form;
+                var laydate=layui.laydate;
+                var layer=layui.layer;
+
+                var date = new Date();
+                var day =date.getDate()-1 ; //日
+                var month=date.getMonth()+1 ; //月
+                var year=date.getFullYear(); //年
+                laydate.render({
+                    elem: '#test-range',//指定元素
+                    format:"yyyyMMdd",
+                    min: '2023-03-14',
+                    max: year+"-"+month+"-"+day,
+                    range: ['#startDate', '#endDate'],
+                    theme:'grid',
+                    calendar: true
+                });
+
+                function topData(ln,srcDate,tarDate) {
+                    $.ajax({
+                            type: "GET",
+                            url: "/stock/amplValue",
+                            contentType: "application/json",
+                            data:{"ln":ln,"srcDate":srcDate,"tarDate":tarDate},
+                            async:false,
+                            success: function(res){
+                                console.log("=====res1: 成功=======")
+                            },
+                            error:function (msg){
+                                console.log(msg+"失败了")
+                            }
+                        }
+                    );
+                }
+                //监听提交
+                form.on('submit(formDemo)', function(data){
+                    layer.msg("提交登录表单: "+JSON.stringify(data.field),{icon:6});
+                    var ln=data.field.sh;
+                    var srcDate=data.field.srcDate;
+                    var tarDate=data.field.tarDate;
+                    topData(ln,srcDate,tarDate);
+
+                    location.reload();
+                    return false;
+                });
+            });
+
+        </script>
+        <div id="container" style="height: 650px"></div>
+        <script type="text/javascript">
+
+            // 定义x、y轴数据数组
+            var cname=[];
+            var symbol=[];
+            var amplitude=[];
+            //请求后台数据
+            $.ajax({
+                type: "get",
+                url: "/stock/amplList",
+                async:false,
+                contentType: "application/json",
+                success: function(res){
+                    for (var i = 0; i < res.length ; i++) {
+                        cname.push(res[i].cname);
+                        symbol.push(res[i].symbol);
+                        amplitude.push(res[i].amplitude);
+                    }
+                }
+            });
+
+            var dom = document.getElementById('container');
+            var myChart = echarts.init(dom, null, {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+            var app = {};
+
+            var option;
+
+            option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross'
+                    }
+                },
+                title: {
+                    left: 'center',
+                    text: '振幅折线图'
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: cname
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        data: amplitude,
+                        type: 'line',
+                        areaStyle: {}
+                    }
+                ]
+            };
+
+            if (option && typeof option === 'object') {
+                myChart.setOption(option);
+            }
+            window.addEventListener('resize', myChart.resize);
+
+        </script>
+    </div>
+</div>
+</body>
+</html>

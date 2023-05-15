@@ -1,0 +1,60 @@
+table {
+  width: 100%;
+  margin: 100px auto;
+  text-align: center;
+  border-collapse: collapse;
+  font-size: 14px;
+  
+}
+/*tbody tr:first-child{*/
+/*  background-color: #89b5e1;*/
+/*  color: white;*/
+/*}*/
+
+/*#zhe{*/
+/*  background-color: #89b5e1;*/
+/*  color: white;*/
+/*}*/
+
+tbody td a{
+  color: yellow;
+}
+
+
+tbody tr:nth-child(2n){
+  /*background-color:#f1f1f1 ;*/
+  background-color: #f1f1f1;
+  /*color: #3f3f3f;*/
+}
+
+tbody tr {
+  height: 30px;
+  /*color: ghostwhite;*/
+  line-height: 30px;
+  
+}
+
+/*table tbody {*/
+/*  !* border-bottom: 1px solid #d7d7d7; *!*/
+/*  !*vertical-align: top;*!*/
+/*  vertical-align: top;*/
+
+/*}*/
+
+tbody td {
+  /* border-bottom: 1px solid #d7d7d7; */
+  font-size: 14px;
+  text-align: center;
+  /*vertical-align: top;*/
+  
+}
+
+
+
+td.negative{
+  color: red;
+}
+
+td.negative1{
+  color: green;
+}

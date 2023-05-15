@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>交易所不同行业涨跌额</title>
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/c.css">
+    <link rel="stylesheet" href="/static/css/animate.css">
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+</head>
+
+<body>
+<div style="height: 40px"></div>
+<div>
+<div class="layui-container">
+    <form class="layui-form" action="" style="padding-left: 250px;display: flex">
+        <div class="layui-form-item">
+            <label class="layui-form-label">选择粒度</label>
+            <div class="layui-input-block">
+                <input type="radio" name="market" value="美国交易所" title="美国交易所">
+                <input type="radio" name="market" value="纽约交易所" title="纽约交易所">
+                <input type="radio" name="market" value="纳斯达克交易所" title="纳斯达克交易所">
+                <button class="layui-btn layui-btn-sm layui-btn-radius layui-border-orange" lay-submit lay-filter="formDemo">点击确认</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="container" style="height: 650px"></div>
+<script>
+    //Demo
+    layui.use(['form','layer'], function(){
+        var form = layui.form;
+        var layer=layui.layer;
+        function topData(market) {
+            layer.msg(market);
+            $.ajax({
+                    type: "GET",
+                    url: "/stock/categoryMarket",
+                    contentType: "application/json",
+                    data: {"market":market},
+                    async:false,
+                    success: function(res){
+                        console.log("=====res1: 成功=======")
+                    },
+                    error:function (msg){
+                        console.log(market+"失败了")
+                    }
+                }
+            );
+
+        }
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            layer.msg("提交登录表单: "+JSON.stringify(data.field),{icon:6});
+            var market=data.field.market;
+            topData(market);
+            location.reload();
+            return false;
+        });
+    });
+
+</script>
+
+<script type="text/javascript">
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+        renderer: 'canvas',
+        useDirtyRect: false
+    });
+    var app = {};
+
+    var option;
+    var category=[];
+    var maxdiff=[];
+    var mindiff=[];
+    //请求后台数据
+    $.ajax({
+        type: "get",
+        url: "/stock/categoryMarketdiff",
+        async:false,
+        contentType: "application/json",
+        success: function(res){
+            for (var i = 0; i < res.length ; i++) {
+                category.push(res[i].category);
+                maxdiff.push(res[i].maxdiff);
+                mindiff.push(res[i].mindiff);
+            }
+        }
+    });
+
+    option = {
+        title: {
+            text: '全部股票不同行业涨跌额情况'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        legend: {},
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'value',
+            boundaryGap: [0, 0.01]
+        },
+        yAxis: {
+            type: 'category',
+            data: category
+        },
+        series: [
+            {
+                name: '行业单股最大涨跌额',
+                type: 'bar',
+                data: maxdiff,
+                color :"#D4EE5E"
+            },
+            {
+                name: '行业单股最小涨跌额',
+                type: 'bar',
+                data: mindiff
+            }
+        ]
+    };
+
+    if (option && typeof option === 'object') {
+        myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+</script>
+</div>
+</body>
+</html>

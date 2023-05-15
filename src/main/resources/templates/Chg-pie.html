@@ -1,0 +1,153 @@
+<!--
+	此示例下载自 https://echarts.apache.org/examples/zh/editor.html?c=pie-legend
+-->
+<!DOCTYPE html>
+<html lang="zh-CN" style="height: 100%">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <!--<script type="text/javascript" src="/static/js/echarts.min.js"></script>-->
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+</head>
+<body style="height: 100%; margin: 0">
+<div style="height: 40px"></div>
+<div class="layui-container">
+    <form class="layui-form" action="" style="padding-left: 250px;display: flex">
+        <div class="layui-form-item">
+            <label class="layui-form-label">选择(没有负数的)</label>
+            <div class="layui-input-block">
+                <input type="radio" name="chgValue" value="sumChg" title="行业总涨跌幅">
+                <input type="radio" name="chgValue" value="avgChg" title="行业平均涨跌幅">
+                <input type="radio" name="chgValue" value="maxChg" title="行业单股最大涨跌幅">
+                <input type="radio" name="chgValue" value="minChg" title="行业单股最小涨跌幅">
+                <button class="layui-btn layui-btn-sm layui-btn-radius layui-border-orange" lay-submit lay-filter="formDemo">点击确认</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="container" style="height: 400px"></div>
+<script>
+    //Demo
+    var category=[];
+    var value=[];
+    layui.use('form', function(){
+        var form = layui.form;
+
+        function topData(index) {
+            $.ajax({
+                    type: "GET",
+                    url: "/stock/chgCategoryindex",
+                    contentType: "application/json",
+                    data: {"index": index},
+                    async: false,
+                    success: function (res) {
+                        console.log(res + "成功")
+                    },
+                    error: function (msg) {
+                        console.log(msg + "失败了")
+                    }
+                }
+            );
+        }
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            layer.msg("提交登录表单: "+JSON.stringify(data.field),{icon:6});
+            var chgValue=data.field.chgValue;
+            topData(chgValue);
+            location.reload();
+            return false;
+        });
+    });
+</script>
+<script type="text/javascript">
+    var category=[];
+    var sumChg=[];
+    var len;
+    $.ajax({
+        type: "get",
+        url: "/stock/chgCategoryList",
+        async:false,
+        contentType: "application/json",
+        success: function(res){
+            len=res.length;
+            for (var i = 0; i < res.length ; i++) {
+                category.push(res[i].category);
+                sumChg.push(res[i].va);
+            }
+        }
+    });
+
+    var dom = document.getElementById('container');
+    console.log("开始渲染图表")
+    var myChart = echarts.init(dom, null, {
+        renderer: 'canvas',
+        useDirtyRect: false
+    });
+    var app = {};
+
+    var option;
+
+    const data = genData(len);
+    option = {
+        title: {
+            text: '行业涨跌幅（%）比较',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b} : {c} ({d}%)'
+        },
+        legend: {
+            type: 'scroll',
+            orient: 'vertical',
+            right: 10,
+            top: 20,
+            bottom: 20,
+            data: data.legendData
+        },
+        series: [
+            {
+                name: '行业板块',
+                type: 'pie',
+                radius: '55%',
+                center: ['40%', '50%'],
+                data: data.seriesData,
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        ]
+    };
+    function genData(count) {
+        const legendData = [];
+        const seriesData = [];
+        for (var i = 0; i < count; i++) {
+
+            legendData.push(category[i]);
+
+            seriesData.push({
+                name: category[i],
+                value: sumChg[i]
+            });
+        }
+        return {
+            legendData: legendData,
+            seriesData: seriesData
+        };
+    }
+
+    if (option && typeof option === 'object') {
+        myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+</script>
+</body>
+</html>

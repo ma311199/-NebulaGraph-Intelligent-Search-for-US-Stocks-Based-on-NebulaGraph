@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>成交量分析</title>
+    <link rel="stylesheet" href="/static/css/layui.css">
+    <script type="text/javascript" src="/static/js/layui.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+</head>
+<body>
+<div style="height: 40px"></div>
+<div >
+    <div class="layui-container">
+        <form class="layui-form" action="" style="padding-left: 250px;display: flex">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">日期范围</label>
+                    <div class="layui-inline" id="test-range">
+                        <div class="layui-input-inline">
+                            <input type="text" id="startDate" name="srcDate" class="layui-input" placeholder="开始日期">
+                        </div>
+                        <div class="layui-form-mid">-</div>
+                        <div class="layui-input-inline">
+                            <input type="text" id="endDate" name="tarDate" class="layui-input" placeholder="结束日期">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">选择交易所</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="market" value="美国交易所" title="美国交易所">
+                    <input type="radio" name="market" value="纽约交易所" title="纽约交易所">
+                    <input type="radio" name="market" value="纳斯达克交易所" title="纳斯达克纽约交易所">
+                    <button class="layui-btn layui-btn-sm layui-btn-radius layui-border-orange" lay-submit lay-filter="formDemo">点击确认</button>
+                </div>
+            </div>
+        </form>
+
+        <script>
+            //Demo
+            layui.use(['form','layer','laydate'], function(){
+                var form = layui.form;
+                var laydate=layui.laydate;
+                var layer=layui.layer;
+
+                var date = new Date();
+                var day =date.getDate()-1 ; //日
+                var month=date.getMonth()+1 ; //月
+                var year=date.getFullYear(); //年
+                laydate.render({
+                    elem: '#test-range',//指定元素
+                    format:"yyyyMMdd",
+                    min: '2023-03-14',
+                    max: year+"-"+month+"-"+day,
+                    range: ['#startDate', '#endDate'],
+                    theme:'grid',
+                    calendar: true
+                });
+
+                function topData(srcDate,tarDate,market) {
+                    $.ajax({
+                            type: "GET",
+                            url: "/stock/volumeIndex2",
+                            contentType: "application/json",
+                            data:{"srcDate":srcDate,"tarDate":tarDate,"market":market},
+                            async:false,
+                            success: function(res){
+                                console.log("=====res1: 成功=======")
+                            },
+                            error:function (msg){
+                                console.log(msg+"失败了")
+                            }
+                        }
+                    );
+                }
+                //监听提交
+                form.on('submit(formDemo)', function(data){
+                    layer.msg("提交登录表单: "+JSON.stringify(data.field),{icon:6});
+                    // var ln=data.field.sh;
+                    var srcDate=data.field.srcDate;
+                    var tarDate=data.field.tarDate;
+                    var market=data.field.market;
+                    topData(srcDate,tarDate,market);
+
+                    location.reload();
+                    return false;
+                });
+            });
+
+        </script>
+        <div id="container" style="height: 600px"></div>
+        <script type="text/javascript">
+            var dom = document.getElementById('container');
+            var myChart = echarts.init(dom, null, {
+                renderer: 'canvas',
+                useDirtyRect: false
+            });
+            var app = {};
+
+            var option;
+            var category=[];
+            var maxVolume=[];
+            var minVolume=[];
+            var avgVolume=[];
+            var sumVolume=[];
+            //请求后台数据
+            $.ajax({
+                type: "get",
+                url: "/stock/volumeMarketCategoryList",
+                async:false,
+                contentType: "application/json",
+                success: function(res){
+                    for (var i = 0; i < res.length ; i++) {
+                        category.push(res[i].category);
+                        maxVolume.push(res[i].maxVolume);
+                        minVolume.push(res[i].minVolume);
+                        avgVolume.push(res[i].avgVolume);
+                        sumVolume.push(res[i].sumVolume);
+                    }
+                }
+            });
+
+            option = {
+                title: {
+                    text: '不同行业成交量情况'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {},
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    boundaryGap: [0, 0.01]
+                },
+                yAxis: {
+                    type: 'category',
+                    data: category
+                },
+                series: [
+                    {
+                        name: '行业单股最大成交量',
+                        type: 'bar',
+                        data: maxVolume,
+                        color :"#D4EE5E"
+                    },
+                    {
+                        name: '行业单股最小成交量',
+                        type: 'bar',
+                        data: minVolume,
+                        color: "red"
+                    },
+                    {
+                        name: '行业平均成交量',
+                        type: 'bar',
+                        data: avgVolume,
+                        color: "purple"
+                    },
+                    {
+                        name: '行业总成交量',
+                        type: 'bar',
+                        data: sumVolume,
+                        color: "pink"
+                    }
+                ]
+            };
+
+            if (option && typeof option === 'object') {
+                myChart.setOption(option);
+            }
+
+            window.addEventListener('resize', myChart.resize);
+        </script>
+    </div>
+</div>
+</body>
+</html>

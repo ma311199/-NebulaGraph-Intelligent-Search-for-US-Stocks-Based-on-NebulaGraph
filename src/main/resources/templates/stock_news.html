@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>美股滚动新闻</title>
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/c.css">
+    <link rel="stylesheet" href="/static/css/jPages.css">
+    <link rel="stylesheet" href="/static/css/animate.css">
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+    <script type="text/javascript" src="/static/js/jPages.js"></script>
+    <script type="text/javascript" src="/static/js/jPages.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.liMarquee.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.cxselect.min.js"></script>
+</head>
+<body style="height: 1000px">
+<form>
+    <label style="margin-left: 1360px">每页显示: </label>
+    <select>
+        <option>20</option>
+        <option>30</option>
+        <option>60</option>
+    </select>
+</form>
+<table border="1" id="st" style="margin: 10px auto ;">
+    <tbody id="it">
+    <tr id="zhe" style="background-color: #89b5e1;color: white">
+        <th >标题</th><th>媒体名称</th><th>时间</th>
+    </tr>
+    </tbody>
+    <tbody id="itemContainer"></tbody>
+</table>
+<div class="holder" style="margin-left: 1000px"> </div>
+<!--<button onclick="getthis()">获取</button>-->
+<script>
+    title=[]
+    url=[]
+
+    var data=[]
+    $.ajax(
+        {
+            type: "get",
+            url: "/stock/newsStock",
+            contentType: "application/json",
+            async:false,
+            success: function(res){
+                console.log("=====res1: =======")
+                data=res;
+            }
+
+        }
+    );
+
+    //var id = document.getElementById("st");
+    var tbody = document.querySelectorAll("tbody")[1];
+
+
+    for(var i=0;i<data.length;i++){
+        var tr1=document.createElement('tr');
+        var pi=1;
+        for (var key in data[i]) {
+            var td=document.createElement('td');
+            if(pi==2) {
+                pi++;
+                continue;
+            }
+            if(pi<=1) {
+                td.innerHTML="<a href=\""+data[i]['url']+"\" target=\"_blank\" style=\"color: #c4c454; \">"+data[i][key]+"</a>";
+            }else
+                td.innerText=data[i][key];
+
+            pi++;
+            tr1.appendChild(td);
+        }
+        tbody.appendChild(tr1);
+
+    }
+    $(function() {
+
+        /* initiate plugin */
+        $("body div.holder").jPages({
+            containerID : "itemContainer",
+            perPage : 20,
+            previous : "上一页",
+            next : "下一页",
+            delay : 10    //每个单独页面之间显示的时间的间隔
+        });
+
+        /* on select change */
+        $("select").change(function(){
+            /* get new nº of items per page */
+            var newPerPage1 = parseInt( $(this).val() );
+
+            /* destroy jPages and initiate plugin again */
+            $("body div.holder").jPages("destroy").jPages({
+                containerID   : "itemContainer",
+                perPage       : newPerPage1,
+                previous : "上一页",
+                next : "下一页",
+            });
+        });
+
+    });
+</script>
+</body>
+</html>

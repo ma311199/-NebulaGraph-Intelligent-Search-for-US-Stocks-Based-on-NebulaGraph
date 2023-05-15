@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>股票历史数据</title>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.liMarquee.js"></script>
+    <script type="text/javascript" src="/static/js/echarts.min.js"></script>
+</head>
+<body>
+     <div id="container" style="height: 500px;"></div>
+     <script type="text/javascript">
+         var myChart = echarts.init(document.getElementById('container'));
+         var upColor = '#ef0e0e';
+         var upBorderColor = '#ada334';
+         var downColor = '#00da3c';
+         var downBorderColor = '#008F28';
+         // Each item: open，close，lowest，highest
+         // 定义x、y轴数据数组
+         var cname
+         var nums=[];
+         //请求后台数据
+         $.ajax({
+             type: "get",
+             url: "/stock/a",
+             contentType: "application/json",
+             async:false,
+             success: function(res){
+                 console.log("=====res: =======")
+                 console.log(res);
+                 for (var i = 0; i < res.length ; i++) {
+                     var num=[]
+                     cname=res[i].cname;
+                     num.push(res[i].part_dt);
+                     num.push(res[i].open);
+                     num.push(res[i].close);
+                     num.push(res[i].low);
+                     num.push(res[i].high);
+                     nums.push(num);
+                 }
+                 console.log(nums)
+             }
+         });
+         var data0=splitData(nums);
+
+         function splitData(rawData) {
+             const categoryData = [];
+             const values = [];
+             for (var i = 0; i < rawData.length; i++) {
+                 categoryData.push(rawData[i].splice(0, 1)[0]);
+                 values.push(rawData[i]);
+             }
+             return {
+                 categoryData: categoryData,
+                 values: values
+             };
+         }
+         function calculateMA(dayCount) {
+             var result = [];
+             for (var i = 0, len = data0.values.length; i < len; i++) {
+                 if (i < dayCount) {
+                     result.push('-');
+                     continue;
+                 }
+                 var sum = 0;
+                 for (var j = 0; j < dayCount; j++) {
+                     sum += +data0.values[i - j][1];
+                 }
+                 result.push(sum / dayCount);
+             }
+             return result;
+         }
+         var option = {
+             title: {
+                 text: cname,
+                 left: 0
+             },
+             tooltip: {
+                 trigger: 'axis',
+                 axisPointer: {
+                     type: 'cross'
+                 }
+             },
+             legend: {
+                 data: ['日K', 'MA5', 'MA10', 'MA20', 'MA30']
+             },
+             grid: {
+                 left: '10%',
+                 right: '10%',
+                 bottom: '15%'
+             },
+             xAxis: {
+                 type: 'category',
+                 data: data0.categoryData,
+                 boundaryGap: false,
+                 axisLine: { onZero: false },
+                 splitLine: { show: false },
+                 min: 'dataMin',
+                 max: 'dataMax'
+             },
+             yAxis: {
+                 scale: true,
+                 splitArea: {
+                     show: true
+                 }
+             },
+             dataZoom: [
+                 {
+                     type: 'inside',
+                     start: 50,
+                     end: 100
+                 },
+                 {
+                     show: true,
+                     type: 'slider',
+                     top: '90%',
+                     start: 50,
+                     end: 100
+                 }
+             ],
+             series: [
+                 {
+                     name: '日K',
+                     type: 'candlestick',
+                     data: data0.values,
+                     itemStyle: {
+                         color: upColor,
+                         color0: downColor,
+                         borderColor: upBorderColor,
+                         borderColor0: downBorderColor
+                     },
+                     markPoint: {
+                         label: {
+                             formatter: function (param) {
+                                 return param != null ? Math.round(param.value) + '' : '';
+                             }
+                         },
+                         data: [
+                             {
+                                 name: 'Mark',
+                                 coord: ['2013/5/31', 2300],
+                                 value: 2300,
+                                 itemStyle: {
+                                     color: 'rgb(41,60,85)'
+                                 }
+                             },
+                             {
+                                 name: 'highest value',
+                                 type: 'max',
+                                 valueDim: 'highest'
+                             },
+                             {
+                                 name: 'lowest value',
+                                 type: 'min',
+                                 valueDim: 'lowest'
+                             },
+                             {
+                                 name: 'average value on close',
+                                 type: 'average',
+                                 valueDim: 'close'
+                             }
+                         ],
+                         tooltip: {
+                             formatter: function (param) {
+                                 return param.name + '<br>' + (param.data.coord || '');
+                             }
+                         }
+                     },
+                     markLine: {
+                         symbol: ['none', 'none'],
+                         data: [
+                             [
+                                 {
+                                     name: 'from lowest to highest',
+                                     type: 'min',
+                                     valueDim: 'lowest',
+                                     symbol: 'circle',
+                                     symbolSize: 10,
+                                     label: {
+                                         show: false
+                                     },
+                                     emphasis: {
+                                         label: {
+                                             show: false
+                                         }
+                                     }
+                                 },
+                                 {
+                                     type: 'max',
+                                     valueDim: 'highest',
+                                     symbol: 'circle',
+                                     symbolSize: 10,
+                                     label: {
+                                         show: false
+                                     },
+                                     emphasis: {
+                                         label: {
+                                             show: false
+                                         }
+                                     }
+                                 }
+                             ],
+                             {
+                                 name: 'min line on close',
+                                 type: 'min',
+                                 valueDim: 'close'
+                             },
+                             {
+                                 name: 'max line on close',
+                                 type: 'max',
+                                 valueDim: 'close'
+                             }
+                         ]
+                     }
+                 },
+                 {
+                     name: 'MA5',
+                     type: 'line',
+                     data: calculateMA(5),
+                     smooth: true,
+                     lineStyle: {
+                         opacity: 0.5
+                     }
+                 },
+                 {
+                     name: 'MA10',
+                     type: 'line',
+                     data: calculateMA(10),
+                     smooth: true,
+                     lineStyle: {
+                         opacity: 0.5
+                     }
+                 },
+                 {
+                     name: 'MA20',
+                     type: 'line',
+                     data: calculateMA(20),
+                     smooth: true,
+                     lineStyle: {
+                         opacity: 0.5
+                     }
+                 },
+                 {
+                     name: 'MA30',
+                     type: 'line',
+                     data: calculateMA(30),
+                     smooth: true,
+                     lineStyle: {
+                         opacity: 0.5
+                     }
+                 }
+             ]
+         };
+
+         // 使用刚指定的配置项和数据显示图表。
+         if (option && typeof option === 'object') {
+             myChart.setOption(option);
+         }
+
+     </script>
+     <div id="container1" style="height: 500px"></div>
+     <script type="text/javascript">
+         var dom = document.getElementById('container1');
+         var myChart = echarts.init(dom, null, {
+             renderer: 'canvas',
+             useDirtyRect: false
+         });
+         var app = {};
+
+         var option;
+
+         // prettier-ignore
+         let dataAxis = [];
+         // prettier-ignore
+         let data = [];
+         $.ajax({
+             type: "get",
+             url: "/stock/VolumeList",
+             contentType: "application/json",
+             async:false,
+             success: function(res){
+                 console.log(res);
+                 for (var i = 0; i < res.length ; i++) {
+                     dataAxis.push(res[i].part_dt);
+                     data.push(res[i].volume);
+                 }
+             }
+         });
+         let yMax = 500;
+         let dataShadow = [];
+         for (let i = 0; i < data.length; i++) {
+             dataShadow.push(yMax);
+         }
+         option = {
+             title: {
+                 text: '成交量'
+             },
+             tooltip: {
+                 trigger: 'axis',
+                 axisPointer: {
+                     type: 'shadow'
+                 }
+             },
+             xAxis: {
+                 data: dataAxis,
+                 axisLabel: {
+                     inside: true,
+                     color: '#fff'
+                 },
+                 axisTick: {
+                     show: false
+                 },
+                 axisLine: {
+                     show: false
+                 },
+                 z: 10
+             },
+             yAxis: {
+                 axisLine: {
+                     show: false
+                 },
+                 axisTick: {
+                     show: false
+                 },
+                 axisLabel: {
+                     color: '#999'
+                 }
+             },
+             dataZoom: [
+                 {
+                     type: 'inside'
+                 }
+             ],
+             series: [
+                 {
+                     type: 'bar',
+                     showBackground: true,
+                     itemStyle: {
+                         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                             { offset: 0, color: '#83bff6' },
+                             { offset: 0.5, color: '#188df0' },
+                             { offset: 1, color: '#188df0' }
+                         ])
+                     },
+                     emphasis: {
+                         itemStyle: {
+                             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                 { offset: 0, color: '#2378f7' },
+                                 { offset: 0.7, color: '#2378f7' },
+                                 { offset: 1, color: '#83bff6' }
+                             ])
+                         }
+                     },
+                     data: data
+                 }
+             ]
+         };
+         // Enable data zoom when user click bar.
+         const zoomSize = 6;
+         myChart.on('click', function (params) {
+             console.log(dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)]);
+             myChart.dispatchAction({
+                 type: 'dataZoom',
+                 startValue: dataAxis[Math.max(params.dataIndex - zoomSize / 2, 0)],
+                 endValue:
+                     dataAxis[Math.min(params.dataIndex + zoomSize / 2, data.length - 1)]
+             });
+         });
+
+         if (option && typeof option === 'object') {
+             myChart.setOption(option);
+         }
+
+         window.addEventListener('resize', myChart.resize);
+     </script>
+</body>
+
+</html>
